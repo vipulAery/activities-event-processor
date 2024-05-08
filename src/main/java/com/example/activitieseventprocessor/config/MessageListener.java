@@ -35,25 +35,25 @@ public class MessageListener {
 
 
 //    private static final Logger LOG = LoggerFactory.getLogger(MessageListener.class);
+//
+//    @KafkaListener(id = "batch-listener", topics = {"${random.topic}"}, groupId = "batch-message", batch = "true")
+//    public void receive(List<Message> messages,
+//                        @Header(KafkaHeaders.RECEIVED_PARTITION) List<Integer> partitions,
+//                        @Header(KafkaHeaders.OFFSET) List<Long> offsets) {
+//
+//        log.info("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -");
+//        for (int i = 0; i < 1; i++) {
+//            log.info("received message='{}' with partition-offset='{}'",
+//                    messages.get(i), partitions.get(i) + "-" + offsets.get(i));
+//        }
+//        log.info("all the batch messages are consumed");
+//    }
 
-    @KafkaListener(id = "batch-listener", topics = {"${random.topic}"}, groupId = "batch-message", batch = "true")
-    public void receive(List<Message> messages,
-                        @Header(KafkaHeaders.RECEIVED_PARTITION) List<Integer> partitions,
-                        @Header(KafkaHeaders.OFFSET) List<Long> offsets) {
-
-        log.info("- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -");
-        for (int i = 0; i < 1; i++) {
-            log.info("received message='{}' with partition-offset='{}'",
-                    messages.get(i), partitions.get(i) + "-" + offsets.get(i));
-        }
-        log.info("all the batch messages are consumed");
-    }
-
-    @KafkaListener(id = "single-message-listener", topics = "${random.topic}", groupId = "single-message")
-    public void listen(List<Message> messages) {
-        log.info("Received Messages: " + messages);
-        // Add your custom processing logic here
-    }
+//    @KafkaListener(id = "single-message-listener", topics = "${random.topic}", groupId = "single-message")
+//    public void listen(List<Message> messages) {
+//        log.info("Received Messages: " + messages);
+//        // Add your custom processing logic here
+//    }
 
 
     List<UserActivityEvent> processMessages(List<UserActivityEvent> messages) {
