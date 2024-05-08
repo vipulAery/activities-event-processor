@@ -1,0 +1,18 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Remote Machine for vaery00
+Resources:
+  RemoteMachine:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: ami-0663b059c6536cac8
+      InstanceType: m5.2xlarge
+      KeyName: vaery00
+      NetworkInterfaces:
+        - DeviceIndex: 0
+          SubnetId: subnet-18a96b41
+          AssociatePublicIpAddress: true
+          GroupSet:
+            - sg-0ea8f375c4ce98c07
+
+
+

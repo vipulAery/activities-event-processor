@@ -1,0 +1,11 @@
+echo '{"eventId": "id1","actor":"actor1","action":"action1","resource":"resource1","localDateTime":"2024-05-04T12:10:01"}' >> user-activities.txt
+echo '{"eventId": "id2","actor":"actor2","action":"action2","resource":"resource2","localDateTime":"2024-05-04T13:10:01"}' >> user-activities.txt
+echo '{"eventId": "id3","actor":"actor3","action":"action3","resource":"resource3","localDateTime":"2024-05-04T14:10:01"}' >> user-activities.txt
+echo '{"eventId": "id4","actor":"actor4","action":"action4","resource":"resource4","localDateTime":"2024-05-04T15:10:01"}' >> user-activities.txt
+echo '{"eventId": "id5","actor":"actor5","action":"action5","resource":"resource5","localDateTime":"2024-05-04T16:10:01"}' >> user-activities.txt
+echo '{"eventId": "id6","actor":"actor6","action":"action6","resource":"resource6","localDateTime":"2024-05-04T17:10:01"}' >> user-activities.txt
+echo '{"eventId": "id7","actor":"actor7","action":"action7","resource":"resource7","localDateTime":"2024-05-04T18:10:01"}' >> user-activities.txt
+echo '{"eventId": "id8","actor":"actor8","action":"action8","resource":"resource8","localDateTime":"2024-05-04T19:10:01"}' >> user-activities.txt
+echo '{"eventId": "id9","actor":"actor9","action":"action9","resource":"resource9","localDateTime":"2024-05-04T20:10:01"}' >> user-activities.txt
+echo '{"eventId": "id10","actor":"actor10","action":"action10","resource":"resource10","localDateTime":"2024-05-04T21:10:01"}' >> user-activities.txt
+echo '{"eventId": "id11","actor":"actor11","action":"action11","resource":"resource11","localDateTime":"2024-05-04T22:10:01"}' >> user-activities.txt

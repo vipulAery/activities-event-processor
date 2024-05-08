@@ -1,0 +1,254 @@
+Understanding from Project Specification:
+Event Bus contains messages and messages has info. about user activity.
+
+Messages needs to be transformed and needs to be stored in Database(Validation can also be done if required) And Then perform filter search.
+
+
+Which database to use ?
+As there should be filter based on time / actor / action / resource
+i can think of:
+Time Series DB due to time as there will be query based on some time range rather than a particular timestamp but we have multiple fields to search upon.
+Elasticsearch DB bcoz search based on time, actor, action, resource as there are searches based on multiple columns
+so reverse indexing can be good thought process as we are not doing text based search(fuzzy search etc.) rather exact match search so we can try to use some column based DB.
+Also it don't provide better durability gurantee.
+Cassandra DB bcoz it's columnar DB on which we can perform search
+
+Also we can't use mysql DB considering as there are large number of events comming up so we need DB with high write QPS which uses LSM tree concept
+And we need to store large amount of Data comming up so we need some kind of sharded DB which can scale upto 100's of TB of data.
+
+Also thought about clickhouse but due to following reasons i dropped that plan:
+Only a few columns are selected to answer any particular query
+https://clickhouse.com/docs/en/intro#what-is-olap
+(Needs to be validated more)
+Cluster Expansion:
+https://celerdata.com/blog/understanding-clickhouse-benefits-and-limitations
+
+Apache Druid:
+https://imply.io/blog/apache-cassandra-vs-apache-druid/
+(Post is more inclined towards Druid as they are working on Druid)
+Apache Druid is more better compared to cassandra where we have multiple columns to search upon
+Also Apache Druid is more better for OLAP data than OLTP data.
+
+
+Assume the event stream is getting a 1000 msg/second :
+We need to use multiple instances of consumer bcoz threading and using reactive programming is not enough for single consumer and
+we need to do partitioning of Kafka message queue.
+no. of partitions = ((messages per second / messages consumed by single instance ) + 1) * (1.5 or 2 - due to increase load in future)
+
+Also there should be loose coupling on producer side in case,
+if we want to inc. partitions we should able to do that by deploying another Kafka using blue / green deployment concept
+Why not same Kafka bcoz repartitioning same Kafka creates issue in existing messages.
+Also may be we can do it using topics by updating topic name on producer side. then it becomes tight coupling or on producer side
+we should have topic name stored in config which get refreshed when it is in running state.
+
+Estimations:
+RPS - 1000/s
+Sec/day - 86400 ~ 10^5 sec
+days/yr - 365 ~ 400
+1 Event Size ~ 500 B
+Event Data generated / yr = Event size * RPS * secs/day * days/yr
+= (5* 10 ^ 2) B * (10 ^ 3) * (10 ^ 5) * (4 * 10 ^ 2)
+= 20 * 10 ^ 12 B = 20 TB/yr
+
+Another questions that can be of think what is read TPS like write TPS is 1000/s ?
+
+-------
+When i type Kafka i saw four dependencies options, find usecase of each:
+Spring Apache Kafka
+Spring Apache Kafka Streams
+Cloud Stream
+Cloud Bus
+
+I also think that we can use Cloud Stream / Cloud Bus to provide abstraction
+we can change message queue b/w AWS Kinesis and Apache Kafka ?
+<!--	m5.2xlarge -->
+
+
+aws cloudformation create-stack --stack-name vaery00-remote-server --template-body file:///Users/vaery00/IdeaProjects/activities-event-processor/src/main/resources/activities-event-processor-vaery00.yaml
+aws cloudformation update-stack --stack-name my-stack --template-body file://path_to_your_template_file.yaml
+aws cloudformation delete-stack --stack-name my-stack
+
+https://www.baeldung.com/ops/kafka-docker-setup
+https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/install-docker.html
+https://www.bornfight.com/blog/transferring-files-between-local-machine-and-aws-instance/
+scp -i ~/ec2-certificates/vaery00.pem single-zk-single-kafka-docker-compose.yml ec2-user@52.35.167.148:/home/ec2-user
+ssh -i "vaery00.pem" ec2-user@52.35.167.148
+docker-compose up -d
+
+install nc
+https://repost.aws/knowledge-center/cloud9-ec2-linux-2-jump-host
+
+Considering time constraints using single node Kafka,
+in kafka cluster having multiple nodes we can have replication factor of 2 having 3 nodes in cluster.
+Also we can use multiple AZ in same region also we can have multi region availability.
+we can consider using:
+https://github.com/conduktor/kafka-stack-docker-compose/blob/master/zk-multiple-kafka-multiple-schema-registry.yml
+
+https://www.conduktor.io/kafka/kafka-cli-tutorial/
+inside container i ran these commands
+https://www.conduktor.io/kafka/kafka-topics-cli-tutorial/
+remove .sh and update port
+
+kafka-topics --bootstrap-server localhost:29092 --topic user-activities --create --partitions 3 --replication-factor 1
+kafka-console-producer --bootstrap-server localhost:29092 --topic user-activities
+kafka-console-producer --bootstrap-server localhost:29092 --topic first_topic < first_topic_input.txt
+kafka-console-producer --bootstrap-server localhost:29092 --topic user-activities < user-activities.txt
+
+
+kafka-topics --bootstrap-server localhost:29092 --topic first_topic --create --partitions 3 --replication-factor 1
+kafka-topics --bootstrap-server localhost:29092 --list
+kafka-topics --bootstrap-server localhost:29092 --describe --topic first_topic [exception is not handled in list topics if topics doesn't exist - open source contribution]
+kafka-topics --bootstrap-server localhost:29092 --alter --topic first_topic --partitions 5
+kafka-topics --bootstrap-server localhost:29092 --delete --topic first_topic
+
+https://www.conduktor.io/kafka/kafka-producer-cli-tutorial/
+kafka-console-producer --bootstrap-server localhost:29092 --topic first_topic
+kafka-console-producer --bootstrap-server localhost:29092 --topic first_topic < first_topic_input.txt
+kafka-console-producer --bootstrap-server localhost:29092 --topic first_topic --property parse.key=true --property key.separator=:
+
+https://www.conduktor.io/kafka/kafka-consumer-cli-tutorial/
+kafka-console-consumer --bootstrap-server localhost:29092 --topic first_topic
+kafka-console-consumer --bootstrap-server localhost:29092 --topic first_topic --from-beginning
+kafka-console-consumer --bootstrap-server localhost:29092 --topic first_topic --formatter kafka.tools.DefaultMessageFormatter --property print.timestamp=true --property print.key=true --property print.value=true --from-beginning
+
+will go into consumer group logic later as it is not required for this problem:
+https://www.conduktor.io/kafka/kafka-consumers-in-group-cli-tutorial/
+https://www.conduktor.io/kafka/kafka-consumer-group-management-cli-tutorial/
+
+dlq for errors
+
+Also we can use apache druid tool to listen to messages and store it in apache druid but expectations is to transform and some code writing expectation is there
+
+https://docs.aws.amazon.com/corretto/latest/corretto-17-ug/amazon-linux-install.html
+sudo yum install java-17-amazon-corretto-devel
+jshell
+
+scp -i ~/ec2-certificates/vaery00.pem activities-event-processor-0.0.1-SNAPSHOT.jar ec2-user@52.35.167.148:/home/ec2-user
+
+setup ssh on Intellij
+
+
+ERROR: transport error 202: bind failed: Address already in use
+ERROR: JDWP Transport dt_socket failed to initialize, TRANSPORT_INIT(510)
+JDWP exit error AGENT_ERROR_TRANSPORT_INIT(197): No transports initialized [src/jdk.jdwp.agent/share/native/libjdwp/debugInit.c:744]
+it solved automatically
+
+
+scp -i ~/ec2-certificates/vaery00.pem /Users/vaery00/IdeaProjects/activities-event-processor/src/main/resources/user-activities.txt ec2-user@52.35.167.148:/home/ec2-user
+
+scp -i ~/ec2-certificates/vaery00.pem /Users/vaery00/IdeaProjects/activities-event-processor/src/main/resources/docker-compose.yml ec2-user@52.35.167.148:/home/ec2-user
+scp -i ~/ec2-certificates/vaery00.pem /Users/vaery00/IdeaProjects/activities-event-processor/src/main/resources/environment ec2-user@52.35.167.148:/home/ec2-user
+scp -i ~/ec2-certificates/vaery00.pem /Users/vaery00/IdeaProjects/activities-event-processor/src/main/resources/wikipedia-index.json ec2-user@52.35.167.148:/home/ec2-user
+scp -i ~/ec2-certificates/vaery00.pem /Users/vaery00/IdeaProjects/activities-event-processor/src/main/resources/wikiticker-2015-09-12-sampled.json.gz ec2-user@52.35.167.148:/home/ec2-user
+
+for logging i also make a mistake of logging.level ?
+looked in LocalDateTimeformatter for default
+
+https://www.baeldung.com/apache-druid-event-driven-data
+
+docker exec -it your-container-id id -u -n
+docker exec -it a74349a051dc id -u -n
+
+docker exec -u root 15411c8f18c1  mkdir /opt/shared/indexing-logs
+
+docker exec -u root 1dbc65f09c82  chmod 777 /opt/druid/var
+docker exec -u root 1dbc65f09c82  chmod 777 /opt/shared/
+
+
+
+docker exec 15411c8f18c1 useradd -ms /bin/sh root - this command didn't work
+
+docker exec -u root 15411c8f18c1 adduser root
+
+
+curl -X 'POST' -H 'Content-Type:application/json' -d @wikipedia-index.json http://localhost:8081/druid/indexer/v1/task
+{"task":"index_parallel_wikipedia_iaecceol_2024-05-06T12:34:39.062Z"}
+curl http://localhost:8888/druid/v2/datasources
+
+
+
+curl   http://localhost:8081/druid/indexer/v1/task/index_parallel_wikipedia_iaecceol_2024-05-06T12:34:39.062Z/status
+curl   http://localhost:8081/druid/indexer/v1/task/{taskId}/status
+
+curl   http://localhost:8081/druid/indexer/v1/task/index_parallel_wikipedia_fpbdbaal_2024-05-05T21:06:35.103Z/status
+
+curl -X 'POST' -H 'Content-Type:application/json' -d @simple_query_native.json http://localhost:8888/druid/v2?pretty
+curl -X 'POST' -H 'Content-Type:application/json' -d @simple_query_sql.json http://localhost:8888/druid/v2/sql
+
+
+psql -U druid -P FoolishPassword -h localhost -p 5432 -d druid
+
+psql -U druid -h localhost -p 5432 -d druid
+
+create table if not exists teacher (teacher_id int, name text, salary int, primary key(teacher_id));
+
+
+CREATE TABLE if not exists user_activity_event (
+    event_id VARCHAR(255) PRIMARY KEY,
+    actor VARCHAR(255) NOT NULL,
+    action VARCHAR(255) NOT NULL,
+    resource VARCHAR(255) NOT NULL,
+    local_date_time TIMESTAMP NOT NULL
+);
+
+insert into user_activity_event values("id100", 'actor100', 'action100', 'resource100', '2024-05-04T22:10:01');
+insert into user_activity_event values("id101", 'actor101', 'action101', 'resource101', '2024-05-04T22:10:02');
+insert into user_activity_event values("id102", 'actor102', 'action102', 'resource102', '2024-05-04T22:10:03');
+insert into user_activity_event values("id103", 'actor103', 'action103', 'resource103', '2024-05-04T22:10:04');
+
+INSERT INTO user_activity_event VALUES('id101', 'actor101', 'action101', 'resource101', '2024-05-04 22:10:02');
+INSERT INTO user_activity_event VALUES('id102', 'actor102', 'action102', 'resource102', '2024-05-04 22:10:03');
+INSERT INTO user_activity_event VALUES('id103', 'actor103', 'action103', 'resource103', '2024-05-04 22:10:04');
+
+
+
+Things to validate and work upon ?
+how to listen from point where service has been gone down - kafka offset and all ?
+code needs to converted into modules
+setup error handler deserializer check by removing @NoArgsConstructor from UserActivityEvent
+unit testing
+
+https://www.baeldung.com/rest-api-search-language-rsql-fiql
+it requires you to write lot of code so find rsql-jpa as as a wrapper around this
+
+
+
+
+---------------------------------
+
+if we create a kafka listener as 1 service and query service querying from apache druid as another service ?
+Impact:
+if there is issue in listener and writer service, query service will get impacted and it might impact users as well.
+As query service is like analytics feature so may be 95% - 99% + availability is also fine if that is the scenario, we can merge the services.
+My point here is we don't need 99.9999999% availability.
+
+Also as we will be following Blue Green deployment so we can easily switch traffic back to previous builds.
+if there are issues at db level due to schema changes and all then may be we can use snapshots and all.
+Also Do we able to take snapshots on daily basis ? we should also have complete documentation of how to use snapshots etc.
+Also Does Apache Druid has schemaless structure or schema based structure ?
+Also we should have multiple region / AZ db deployment
+
+if we consider capacity of 1000 TPS for new mesg.  , then we can save data in db with 5 db save calls with batch of 200.
+Then traffic is less for mesg. listener part we also need to mesg. processing part that also we can do it using thread pool concept.
+if query part is having 10 TPS then we can think of merging listener and query service.
+i mean to say that if we have 5 instances of listener service and 3-5 instances of query service.
+Then we don't get much advantages of segregating the listener and query service.
+Another thing we also need to think about is that we can read data from replication rather than from leaders if we have seprate services or even same services.
+
+if number of instances are more than 6-7 then it makes sense to seprate them or
+the number of instances ratio is like 5:1 or 3:1 or 2:1 and number of instances are more than 10
+then it makes sense to segregate service as we will be utilising resources in best way otherwise 2 seprate services takes it own resources to keep application up.
+
+Otherwise it became a pattern of distributed monolith and it has more disadvanages than monolith service.
+
+also we need minimum of two instances of each services to have high availability of services due to failure in any regions.
+
+we can also discuss other adavantages of microservices to know why to keep it separate.
+
+Now i was thinking again should we keep listener and query service seprate,
+if there are large number of requests for queries then
+we need to have seprate query service as no. of listener service instances can be less than equal to no. of partitions in kafka.
+
+********************************
+
+
