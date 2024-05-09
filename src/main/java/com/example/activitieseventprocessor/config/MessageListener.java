@@ -14,9 +14,7 @@ import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -55,46 +53,37 @@ public class MessageListener {
 //        // Add your custom processing logic here
 //    }
 
+    @KafkaListener(id = "batch-custom-message-listener", topics = "${event.topic}", groupId = "batch-custom-message-group")
+    public void listenCustomMessage(UserActivityEvent userActivityEvent) {
+        log.info("Custom Message: " + userActivityEvent);
 
-    List<UserActivityEvent> processMessages(List<UserActivityEvent> messages) {
-//        see usecase of CompletableFuture.USE_COMMON_POOL and know in details how it works
-        List<UserActivityEvent> list = new ArrayList<>();
-        Stream<CompletableFuture<Void>> processedMessages = messages.parallelStream()
-                .map(message -> CompletableFuture.runAsync(() -> processMessage(message, list), messageProcessorExecutor));
-        try {
-            CompletableFuture.allOf(processedMessages.toArray(CompletableFuture[]::new)).get();
-        } catch (InterruptedException e) {
-            log.info("error1");
-        } catch (ExecutionException e) {
-            log.info("error2");
-        }
+//        CompletableFuture.supplyAsync(()-> userActivityEvent)
+//                .thenApplyAsync (this::processMessage, messageProcessorExecutor)
+//                .thenAccept(this::storeMessage);
 
-        userActivityEventRepository.saveAll(list);
-
-        return list;
+        UserActivityEvent procesedUserActivityEvent = transformMessage(userActivityEvent);
+        log.info("Custom Processed Messages: " + procesedUserActivityEvent);
+        storeMessage(userActivityEvent);
     }
 
-    void processMessage(UserActivityEvent message, List<UserActivityEvent> list) {
+    UserActivityEvent transformMessage(UserActivityEvent message) {
+        UserActivityEvent userActivityEvent = new UserActivityEvent(message);
         try {
+            if(Objects.isNull(message.getEventId())) {
+                // uuid can be used here
+                userActivityEvent.setEventId("id" + new Random().nextInt());
+            }
+            log.info("Processing Message Id: {}", userActivityEvent.getEventId());
+            // Add your custom processing logic here
             Thread.sleep(100);
-            list.add(message);
         } catch (Exception e) {
             log.error("error for message: " + message);
         }
+        return userActivityEvent;
     }
 
-
-    @KafkaListener(id = "batch-custom-message-listener", topics = "${event.topic}", groupId = "batch-custom-message-group")
-    public void listenCustomMessage(List<UserActivityEvent> messages) {
-        log.info("Custom Messages: " + messages);
-        List<UserActivityEvent> processedMessages = Collections.emptyList();
-        try {
-            processedMessages = processMessages(messages);
-        } catch(Exception exception) {
-            log.info("Error for Custom messages: " + messages +"\n "+ exception);
-        }
-        log.info("Custom Processed Messages: " + processedMessages);
-        // Add your custom processing logic here
+    public void storeMessage(UserActivityEvent userActivityEvent) {
+        userActivityEventRepository.save(userActivityEvent);
     }
 
 }

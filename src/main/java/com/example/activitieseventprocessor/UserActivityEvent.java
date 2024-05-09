@@ -23,4 +23,11 @@ public class UserActivityEvent implements Serializable {
     public String resource;
     public LocalDateTime localDateTime;
 
+    public UserActivityEvent(UserActivityEvent userActivityEvent) {
+        this.eventId = userActivityEvent.eventId;
+        this.actor = userActivityEvent.actor;
+        this.action = userActivityEvent.action;
+        this.resource = userActivityEvent.resource;
+        this.localDateTime = userActivityEvent.localDateTime;
+    }
 }

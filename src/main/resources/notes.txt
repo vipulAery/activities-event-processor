@@ -191,11 +191,13 @@ CREATE TABLE if not exists user_activity_event (
     local_date_time TIMESTAMP NOT NULL
 );
 
-insert into user_activity_event values("id100", 'actor100', 'action100', 'resource100', '2024-05-04T22:10:01');
-insert into user_activity_event values("id101", 'actor101', 'action101', 'resource101', '2024-05-04T22:10:02');
-insert into user_activity_event values("id102", 'actor102', 'action102', 'resource102', '2024-05-04T22:10:03');
-insert into user_activity_event values("id103", 'actor103', 'action103', 'resource103', '2024-05-04T22:10:04');
+CREATE INDEX idx_user_activity_event_resource ON user_activity_event (resource);
+CREATE INDEX idx_user_activity_event_action ON user_activity_event (action);
+CREATE INDEX idx_user_activity_event_actor ON user_activity_event (actor);
+CREATE INDEX idx_user_activity_event_event_id ON user_activity_event (event_id);
+CREATE INDEX idx_user_activity_event_local_date_time ON user_activity_event (local_date_time DESC);
 
+insert into user_activity_event values("id100", 'actor100', 'action100', 'resource100', '2024-05-04 22:10:01');
 INSERT INTO user_activity_event VALUES('id101', 'actor101', 'action101', 'resource101', '2024-05-04 22:10:02');
 INSERT INTO user_activity_event VALUES('id102', 'actor102', 'action102', 'resource102', '2024-05-04 22:10:03');
 INSERT INTO user_activity_event VALUES('id103', 'actor103', 'action103', 'resource103', '2024-05-04 22:10:04');
@@ -216,7 +218,7 @@ it requires you to write lot of code so find rsql-jpa as as a wrapper around thi
 
 ---------------------------------
 
-if we create a kafka listener as 1 service and query service querying from apache druid as another service ?
+if we create a kafka listener as 1 service and query service querying from database as another service ?
 Impact:
 if there is issue in listener and writer service, query service will get impacted and it might impact users as well.
 As query service is like analytics feature so may be 95% - 99% + availability is also fine if that is the scenario, we can merge the services.
