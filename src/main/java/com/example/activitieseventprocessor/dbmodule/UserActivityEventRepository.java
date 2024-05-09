@@ -1,6 +1,6 @@
 package com.example.activitieseventprocessor.dbmodule;
 
-import com.example.activitieseventprocessor.UserActivityEvent;
+import com.example.activitieseventprocessor.model.UserActivityEvent;
 import org.springframework.stereotype.Repository;
 import org.springframework.data.jpa.repository.JpaRepository;
 

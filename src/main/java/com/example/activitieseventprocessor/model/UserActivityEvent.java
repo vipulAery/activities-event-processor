@@ -1,4 +1,4 @@
-package com.example.activitieseventprocessor;
+package com.example.activitieseventprocessor.model;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;

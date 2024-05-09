@@ -1,9 +1,9 @@
-package com.example.activitieseventprocessor.config;
+package com.example.activitieseventprocessor;
 
-import com.example.activitieseventprocessor.UserActivityEvent;
 import com.example.activitieseventprocessor.dbmodule.UserActivityEventRepository;
+import com.example.activitieseventprocessor.model.UserActivityEvent;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 
@@ -13,16 +13,17 @@ import java.util.Random;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class MessageListener {
-    @Autowired
-    UserActivityEventRepository userActivityEventRepository;
+    private final UserActivityEventRepository userActivityEventRepository;
 
     @KafkaListener(id = "batch-custom-message-listener", topics = "${event.topic}", groupId = "batch-custom-message-group")
     public void listenCustomMessage(UserActivityEvent userActivityEvent) {
-        log.info("Custom Message: " + userActivityEvent);
+        log.info("Custom Message: {}", userActivityEvent);
 
         UserActivityEvent procesedUserActivityEvent = transformMessage(userActivityEvent);
-        log.info("Custom Processed Messages: " + procesedUserActivityEvent);
+        log.info("Processed Message with eventId : {}", procesedUserActivityEvent.getEventId());
+
         storeMessage(userActivityEvent);
     }
 

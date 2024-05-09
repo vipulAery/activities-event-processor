@@ -1,7 +1,6 @@
-package com.example.activitieseventprocessor;
+package com.example.activitieseventprocessor.config;
 
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import com.fasterxml.jackson.databind.ObjectMapper;
